@@ -20,6 +20,7 @@ public class UnitTests {
 
   void Init() {
     Log.SetLevel(LogEventLevel.Info);
+    _driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(4);
     _driver.Navigate().GoToUrl("https://www.yourlearningpal.com/login");
   }
 
@@ -29,21 +30,27 @@ public class UnitTests {
     (var elUsername, var elPassword, var elSubmit) = GetLoginPane(_driver);
 
     elUsername.SendKeys(_loginUsername);
-    elPassword.SendKeys(_loginWrongPassword);
+    elPassword.SendKeys(_loginPassword);
     elSubmit.Click();
 
-    // TODO: test for success
+    try { _driver.FindElement(By.Id("user-profile-image")); }
+    catch { throw new AssertFailedException("User profile icon not found. Login failed."); }
+
+    _driver.Close();
   }
 
   [TestMethod]
-  public void TestIncorrctLogin() {
+  public void TestIncorrectLogin() {
     Init();
     (var elUsername, var elPassword, var elSubmit) = GetLoginPane(_driver);
 
     elUsername.SendKeys(_loginUsername);
-    elPassword.SendKeys(_loginPassword);
+    elPassword.SendKeys(_loginWrongPassword);
     elSubmit.Click();
 
-    // TODO: test for failure
+    var elResponse = _driver.FindElement(By.Id("lblMessage"));
+    Assert.AreEqual("Password was incorrect.", elResponse.Text);
+
+    _driver.Close();
   }
 }
